@@ -4,7 +4,7 @@ var turnRecord = document.getElementById("player");
 //reset button
 var resBut = document.getElementById("reset");
 
-//deals w scoreboards
+//scoreboards bullshit
 var words = document.querySelector('p');
 var sithScore = document.getElementById('scoreboardSith');
 var rebScore = document.getElementById('scoreboardReb');
@@ -18,43 +18,59 @@ var xWing = document.getElementById('ship2');
 var sithSaber = document.getElementById('saber');
 var rebSaber = document.getElementById('saber2');
 
-//resets the animated ships to default
-var tieTimeout = setTimeout(function () {
-	tieFighter.className = "invisShip";
-}, 1000);
-var xTimeout = setTimeout(function () {
-	xWing.className = "invisShip";
-}, 1000);
+// //resets the animated ships to default
+// var tieTimeout = setTimeout(function () {
+// 		tieFighter.className = "invisShip";
+// 	}, 1000);
+// var xTimeout = setTimeout(function () {
+// 		xWing.className = "invisShip";
+// 	}, 1000);
 
 //audio tracks
 var tieFly = document.getElementById('fly');
 var tieShoot = document.getElementById('fire');
 
-//variable initialization for counters
+//variable initialization for counter
 var turnCount = 0;
 
 //for all the images/squares
 var imgs = document.querySelectorAll(".image");
 
 //this function is the move functionality, it swaps
-//the image n background of the game board and alters the
+//the bg-image of the game board unit and alters the
 //span to show the player up. also adds to the turn count
 //which ultimately determines who's up w the main if/else
 var swapImage = function() {
 	if (turnCount%2 === 1) {
 		this.className = "red";
 		this.removeEventListener('click', swapImage);
-		turnRecord.style.color="lightgreen";
-		turnRecord.innerText ="Rebellion's";
+		turnRecord.style.color = "lightgreen";
+		turnRecord.innerText = "Rebellion's";
 		checkIfWin();
 		turnCount++;
 	} else {
 		this.className = "green";
 		this.removeEventListener('click', swapImage);
-		turnRecord.style.color="red";
-		turnRecord.innerText ="Sith's";
-		checkIfWin();
+		turnRecord.style.color = "red";
+		turnRecord.innerText = "Sith's";
 		turnCount++;
+		//to turn to single player, comment lines 56-71 out 
+		//and the timeout clear on 147
+		aiTurn = setTimeout(function () {
+			for (var i = 0; i < gameBoard.length; i++) {
+				var rando = Math.floor(Math.random()*9);
+				console.log(rando);
+				if ((gameBoard[rando].firstElementChild.className === "green") || (gameBoard[rando].firstElementChild.className === "red")) {
+
+				} else {
+					gameBoard[rando].firstElementChild.className = "red";
+					gameBoard[rando].removeEventListener('click', swapImage);
+					turnCount++;
+					break;
+				}		
+			}
+		}, 1350);
+		checkIfWin();
 	}
 };
 
@@ -67,21 +83,51 @@ var winner = null;
 var sScore = 0;
 var rScore = 0;
 
+var classes = function (item) {
+	if (item === "green" || item === "red"){
+		return item;
+	} else {
+		return Math.random();
+	}		
+}
+
 //HECK 
-//these iterators collect whether or not the green/red blocks (parent) classes
-//contain any of the winning class names. how to determine if 3 match??
+//a very ugly conditional statement that runs while the 
+//turnCount is >=4. if any of the statements are true, then
+//it checks to see if the span color is green/red--if it's green
+//then the sith went last and won and vice versa. depending on
+//the winner, it adds a score to the respective scoreboard, n shakes
+//the saber. 
+
+//regardless of who wins, it plays the audio, changes
+//the content and style of .words, and animates the 
+//two ships. it also removes any event listeners on 
+//ANY of the board pieces. 
 var checkIfWin = function() {
+
+	//spaces variables
+	var topL = classes(gameBoard[0].firstElementChild.className);
+	var topM = classes(gameBoard[1].firstElementChild.className);
+	var topR = classes(gameBoard[2].firstElementChild.className);
+
+	var midL = classes(gameBoard[3].firstElementChild.className);
+	var midM = classes(gameBoard[4].firstElementChild.className);
+	var midR = classes(gameBoard[5].firstElementChild.className);
+
+	var botL = classes(gameBoard[6].firstElementChild.className);
+	var botM = classes(gameBoard[7].firstElementChild.className);
+	var botR = classes(gameBoard[8].firstElementChild.className);
 	
 	while (turnCount >= 4) {
 		if (
-	      gameBoard[0].firstElementChild.className === gameBoard[1].firstElementChild.className && gameBoard[1].firstElementChild.className === gameBoard[2].firstElementChild.className  ||
-	      gameBoard[3].firstElementChild.className === gameBoard[4].firstElementChild.className && gameBoard[4].firstElementChild.className === gameBoard[5].firstElementChild.className  ||
-	      gameBoard[6].firstElementChild.className === gameBoard[7].firstElementChild.className && gameBoard[7].firstElementChild.className === gameBoard[8].firstElementChild.className  ||
-	      gameBoard[0].firstElementChild.className === gameBoard[3].firstElementChild.className && gameBoard[3].firstElementChild.className === gameBoard[6].firstElementChild.className  ||
-	      gameBoard[1].firstElementChild.className === gameBoard[4].firstElementChild.className && gameBoard[4].firstElementChild.className === gameBoard[7].firstElementChild.className  ||
-	      gameBoard[2].firstElementChild.className === gameBoard[5].firstElementChild.className && gameBoard[5].firstElementChild.className === gameBoard[8].firstElementChild.className ||
-	      gameBoard[0].firstElementChild.className === gameBoard[4].firstElementChild.className && gameBoard[4].firstElementChild.className === gameBoard[8].firstElementChild.className  ||
-	      gameBoard[2].firstElementChild.className === gameBoard[4].firstElementChild.className && gameBoard[4].firstElementChild.className === gameBoard[6].firstElementChild.className 
+	      (topL === topM && topM === topR)  ||
+	      (midL === midM && midM === midR)  ||
+	      (botL === botM && botM === botR)  ||
+	      (topL === midL && midL === botL)  ||
+	      (topM === midM && midM === botM)  ||
+	      (topR === midR && midR === botR)  ||
+	      (topL === midM && midM === botR)  ||
+	      (topR === midM && midM === botL) 
 	    ) {
 	      console.log("we have a winner!");
 	       if (turnRecord.style.color === "lightgreen") {
@@ -98,41 +144,58 @@ var checkIfWin = function() {
 	      	rebSaber.className = "shakeSaber";
 	      }
 
+	      clearTimeout(aiTurn);
+	      
 	      tieFly.play();
 	      var shootTimeout = setTimeout(function (){
 				tieShoot.play();
 			}, 1200);
 
-	      words.innerText = "A WINNER, WE HAVE!!!";
-	      words.style.color = "cyan";
-	      words.style.fontWeight = 600;
 	      xWing.className = "animateX";
 	      tieFighter.className = "animateTie";
 	      for (var i = 0; i < 9; i++) {
 	      	imgs[i].removeEventListener('click', swapImage);
 	      }
 
+	      if (winner === 1) {
+	      	words.innerText = "A WINNER, WE HAVE!!!";
+	      	words.style.color = "red";
+	      	words.style.fontWeight = 600;
+	      } else {
+	      	words.innerText = "A WINNER, WE HAVE!!!";
+		    words.style.color = "lightgreen";
+		    words.style.fontWeight = 600;
+	      }
+
 	      return true;
 
 	    } else {
+	      
 	      return false;
+	    
 	    }
 	}
 }
 
-//reset sets board back to stars, span of player name back to initial, 
-//adds action listeners to pieces again, fixes the paragraph and span
-//and resets the turn count
+//reset sets board back to stars, 
+//span of player name back to initial, 
+//adds eventlisteners to pieces again, 
+//fixes the paragraph and span,
+//resets the turnCount
+//and handles the classNames of the 
+//ships and sabers
 reset.onclick = function () {
 	for (var i=0; i < imgs.length; i++) {
-		imgs[i].className = "stars";
+		imgs[i].className = "image stars";
 		imgs[i].addEventListener("click", swapImage);
-		turnRecord.style.color="lightgreen";
-		turnRecord.innerText ="Rebellion's";
 	}
+	turnRecord.style.color="lightgreen";
+	turnRecord.innerText ="Rebellion's";
 	words.innerHTML = "The " + "<span id='player'>Rebellion's</span>" + " turn, it is!";
 	words.style.color = "black";
 	words.style.fontWeight = 200;
+	turnRecord = document.getElementById("player");
+
 	xWing.className = 'invisShip';
 	tieFighter.className = 'invisShip';
 	sithSaber.className = null;
